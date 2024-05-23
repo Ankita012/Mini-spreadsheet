@@ -78,48 +78,57 @@ function handleEnterKeyPress(event) {
             input.value = "Error";
         }
     }else if (event.key === "Enter" && !input.value.startsWith("=")) {
-        alert('please put = before formula');
+        alert('Please put = before formula');
     }
 }
 
 // Function to evaluate a formula
 function evaluateFormula(formula) {
-        const tokens = formula.match(/[A-Z]+\d+|\d+|\+|\-|\*|\/|sum|average|max|\:[A-Z]+\d+/gi);
-        let result = 0;
-        let currentOperator = null;
+    formula = formula.replace(/--/g, '+')
+        .replace(/\+\+/g, '+')
+        .replace(/\+-/g, '-')
+        .replace(/-\+/g, '-')
+        .replace(/\*\+/g, '*')
+        .replace(/\/\+/g, '/')
+        .replace(/\+\//g, '/')
+        .replace(/-\//g, '/');
+    const tokens = formula.match(/[A-Z]+\d+|\d+|\+|\-|\*|\/|sum|average|max|\:[A-Z]+\d+/gi);
+    let result = 0;
+    let currentOperator = null;
 
-        for (let i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
-            if (/^[A-Z]+\d+$/.test(token)) {
-                const [col, row] = parseCell(token);
-                const value = parseFloat(data[row][col]) || 0;
-                result = applyOperator(result, value, currentOperator);
-            } else if (/^\d+$/.test(token)) {
-                const value = parseFloat(token);
-                result = applyOperator(result, value, currentOperator);
-            } else if(/^(sum|average|max|min)$/i.test(token))  {
-                
-                const rangeIndex = tokens.indexOf(token) + 1;
-                const range = tokens.slice(rangeIndex).join(" ");
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+        if (/^[A-Z]+\d+$/.test(token)) {
+            const [col, row] = parseCell(token);
+            const value = parseFloat(data[row][col]) || 0;
+            result = applyOperator(result, value, currentOperator);
+        } else if (/^\d+$/.test(token)) {
+            const value = parseFloat(token);
+            result = applyOperator(result, value, currentOperator);
+        } else if(/^(sum|average|max|min)$/i.test(token))  {
+            
+            const rangeIndex = tokens.indexOf(token) + 1;
+            const range = tokens.slice(rangeIndex).join(" ");
 
-                if(/^sum$/i.test(token))
-                    var ans = supportFunction(range, 'sum');
-                else if(/^average$/i.test(token))
-                   var ans = supportFunction(range, 'avg');
-                else if(/^max$/i.test(token))
-                    var ans = supportFunction(range, 'max');
-                else if(/^min$/i.test(token))
-                    var ans = supportFunction(range, 'min');
+            if(/^sum$/i.test(token))
+                var ans = supportFunction(range, 'sum');
+            else if(/^average$/i.test(token))
+                var ans = supportFunction(range, 'avg');
+            else if(/^max$/i.test(token))
+                var ans = supportFunction(range, 'max');
+            else if(/^min$/i.test(token))
+                var ans = supportFunction(range, 'min');
 
-                result = applyOperator(result, ans, currentOperator);
-                i += range.split(" ").length;
-            }
-            else {
-                currentOperator = token;
-            }
+            result = applyOperator(result, ans, currentOperator);
+            // i += range.split(" ").length;
+            i+=2;
         }
+        else {
+            currentOperator = token;
+        }
+    }
 
-    return result;
+return result;
 }
 // Function to apply the operator to operands
 function applyOperator(operand1, operand2, operator) {
